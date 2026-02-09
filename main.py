@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QListWidgetItem, QLineEdit, QTextEdit, QSplitter,
                              QMessageBox, QSystemTrayIcon, QMenu)
 from PyQt5.QtCore import QTimer, Qt, QSize, pyqtSignal, QObject
-from PyQt5.QtGui import QIcon, QFont, QColor, QPalette, QPixmap
+from PyQt5.QtGui import QIcon, QFont, QColor, QPalette, QPixmap, QPainter
 import config
 
 class TimerManager(QObject):
@@ -241,6 +241,17 @@ class TimerApp(QMainWindow):
                 logo_label = QLabel()
                 pixmap = QPixmap(str(logo_path))
                 if not pixmap.isNull():
+                    # Handle transparency: composite onto white background if needed
+                    if pixmap.hasAlpha():
+                        # Create a white background
+                        background = QPixmap(pixmap.width(), pixmap.height())
+                        background.fill(Qt.white)
+                        # Composite the transparent image onto the white background
+                        painter = QPainter(background)
+                        painter.drawPixmap(0, 0, pixmap)
+                        painter.end()
+                        pixmap = background
+                    
                     # Scale to 64px height maintaining aspect ratio
                     pixmap = pixmap.scaledToHeight(64, Qt.SmoothTransformation)
                     logo_label.setPixmap(pixmap)
