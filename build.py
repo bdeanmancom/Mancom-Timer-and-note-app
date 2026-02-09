@@ -24,7 +24,7 @@ def build_executable():
     
     # Find logo file
     logo_file = None
-    for ext in ['logo.png', 'logo.jpg', 'logo.jpeg', 'mancom.png', 'mancom.jpg', 'mancom.gif']:
+    for ext in ['mancominc.png', 'logo.png', 'logo.jpg', 'logo.jpeg', 'mancom.png', 'mancom.jpg', 'mancom.gif']:
         if Path(ext).exists():
             logo_file = ext
             break

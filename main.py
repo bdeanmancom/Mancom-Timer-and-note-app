@@ -228,7 +228,7 @@ class TimerApp(QMainWindow):
         logo_layout = QHBoxLayout()
         # Try multiple image formats: PNG, JPG, then GIF
         logo_path = None
-        for ext in ['logo.png', 'logo.jpg', 'logo.jpeg', 'mancom.png', 'mancom.jpg', 'mancom.gif']:
+        for ext in ['mancominc.png', 'logo.png', 'logo.jpg', 'logo.jpeg', 'mancom.png', 'mancom.jpg', 'mancom.gif']:
             for attempt in [Path(ext), Path(os.getcwd()) / ext, Path(__file__).parent / ext]:
                 if attempt.exists():
                     logo_path = attempt
