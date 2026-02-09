@@ -122,11 +122,11 @@ class TimerApp(QMainWindow):
         self.current_task = None
         self.task_counter = 0
         
+        # Setup UI first (before loading tasks)
+        self.setup_ui()
+        
         # Load saved tasks
         self.load_tasks()
-        
-        # Setup UI
-        self.setup_ui()
         
         # Connect signals
         self.timer_manager.time_updated.connect(self.update_timer_display)
@@ -346,7 +346,6 @@ class TimerApp(QMainWindow):
             self.clear_task_details()
             return
         
-        self.task_details_label.setText(f"Task: {self.current_task.name}")
         self.task_details_label.setText(
             f"Task: {self.current_task.name} | Created: {self.current_task.created_at[:10]}"
         )
@@ -354,6 +353,14 @@ class TimerApp(QMainWindow):
         self.notes_edit.setPlainText(self.current_task.notes)
         self.notes_edit.blockSignals(False)
         self.update_timer_display(self.current_task.id, self.current_task.elapsed_seconds)
+        
+        # Enable start button
+        if self.timer_manager.current_task_id != self.current_task.id:
+            self.start_btn.setEnabled(True)
+            self.stop_btn.setEnabled(False)
+        else:
+            self.start_btn.setEnabled(False)
+            self.stop_btn.setEnabled(True)
     
     def clear_task_details(self):
         """Clear task details display"""
