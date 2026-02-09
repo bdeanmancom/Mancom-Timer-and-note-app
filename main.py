@@ -139,6 +139,9 @@ class TimerApp(QMainWindow):
         
         # Dirty flag tracks whether there are unsaved changes
         self.dirty = False
+        
+        # Always on top flag
+        self.always_on_top = False
 
         # Setup UI first (before loading tasks)
         self.setup_ui()
@@ -163,9 +166,17 @@ class TimerApp(QMainWindow):
     
     def setup_ui(self):
         """Setup the user interface"""
-        # Create menu bar for theme switching
+        # Create menu bar for theme switching and window options
         menu_bar = self.menuBar()
         view_menu = menu_bar.addMenu("View")
+        
+        # Always on top toggle
+        self.always_on_top_action = view_menu.addAction("Always on Top")
+        self.always_on_top_action.setCheckable(True)
+        self.always_on_top_action.setChecked(False)
+        self.always_on_top_action.triggered.connect(self.toggle_always_on_top)
+        
+        view_menu.addSeparator()
         
         theme_light = view_menu.addAction("Light Theme")
         theme_dark = view_menu.addAction("Dark Theme")
@@ -353,12 +364,23 @@ class TimerApp(QMainWindow):
         else:
             self.tray_icon = QSystemTrayIcon(self)
         
+        # Store the base icon for later updates
+        self.base_tray_icon = self.tray_icon.icon()
+        
         tray_menu = QMenu()
         show_action = tray_menu.addAction("Show")
         show_action.triggered.connect(self.show_window)
         
         hide_action = tray_menu.addAction("Hide")
         hide_action.triggered.connect(self.hide_window)
+        
+        tray_menu.addSeparator()
+        
+        # Always on top toggle in tray
+        self.tray_always_on_top = tray_menu.addAction("Always on Top")
+        self.tray_always_on_top.setCheckable(True)
+        self.tray_always_on_top.setChecked(False)
+        self.tray_always_on_top.triggered.connect(self.toggle_always_on_top)
         
         tray_menu.addSeparator()
         
@@ -383,6 +405,27 @@ class TimerApp(QMainWindow):
             print(f"Warning: system tray unavailable: {e}")
         
         self.tray_icon.activated.connect(self.on_tray_activated)
+    
+    def toggle_always_on_top(self):
+        """Toggle always on top window flag"""
+        self.always_on_top = not self.always_on_top
+        
+        # Update both menu items to stay in sync
+        self.always_on_top_action.setChecked(self.always_on_top)
+        self.tray_always_on_top.setChecked(self.always_on_top)
+        
+        # Apply the window flag
+        if self.always_on_top:
+            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+            self.show()
+            print("✓ Always on top: enabled")
+            # Update tray icon tooltip to indicate on-top status
+            self.tray_icon.setToolTip("Mancom Timer (Always on Top)")
+        else:
+            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
+            self.show()
+            print("✓ Always on top: disabled")
+            self.tray_icon.setToolTip("Mancom Timer")
     
     def on_tray_activated(self, reason):
         """Handle tray icon click"""
