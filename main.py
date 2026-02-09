@@ -190,6 +190,7 @@ class TimerApp(QMainWindow):
         tasks_label = QLabel("MANCOM, INC - TASK TIMER")
         tasks_label.setFont(title_font)
         tasks_label.setStyleSheet("color: #2c3e50; padding: 5px;")
+        tasks_label.setWordWrap(True)
         left_panel.addWidget(tasks_label)
         
         # Task input
@@ -218,37 +219,42 @@ class TimerApp(QMainWindow):
         
         left_widget = QWidget()
         left_widget.setLayout(left_panel)
-        left_widget.setMaximumWidth(250)
+        left_widget.setMaximumWidth(300)
         
         # Right panel - Task details
         right_panel = QVBoxLayout()
         
-        # Add Mancom logo if GIF exists
+        # Add Mancom logo if image exists
         logo_layout = QHBoxLayout()
-        # Try multiple path options
-        gif_path = None
-        for attempt in [Path("mancom.gif"), Path(os.getcwd()) / "mancom.gif", Path(__file__).parent / "mancom.gif"]:
-            if attempt.exists():
-                gif_path = attempt
+        # Try multiple image formats: PNG, JPG, then GIF
+        logo_path = None
+        for ext in ['logo.png', 'logo.jpg', 'logo.jpeg', 'mancom.png', 'mancom.jpg', 'mancom.gif']:
+            for attempt in [Path(ext), Path(os.getcwd()) / ext, Path(__file__).parent / ext]:
+                if attempt.exists():
+                    logo_path = attempt
+                    break
+            if logo_path:
                 break
         
-        if gif_path:
+        if logo_path:
             try:
                 logo_label = QLabel()
-                pixmap = QPixmap(str(gif_path))
+                pixmap = QPixmap(str(logo_path))
                 if not pixmap.isNull():
+                    # Scale to 64px height maintaining aspect ratio
                     pixmap = pixmap.scaledToHeight(64, Qt.SmoothTransformation)
                     logo_label.setPixmap(pixmap)
                     logo_label.setMaximumHeight(80)
+                    logo_label.setAlignment(Qt.AlignCenter)
                     logo_layout.addStretch()
                     logo_layout.addWidget(logo_label)
                     logo_layout.addStretch()
                     right_panel.addLayout(logo_layout)
-                    print(f"✓ Logo loaded from: {gif_path}")
+                    print(f"✓ Logo loaded: {logo_path.name}")
                 else:
-                    print(f"Warning: Could not load GIF from {gif_path}")
+                    print(f"Warning: Could not load image from {logo_path}")
             except Exception as e:
-                print(f"Warning: Error loading GIF: {e}")
+                print(f"Warning: Error loading logo: {e}")
         
         # Task details label
         self.task_details_label = QLabel("Select a task to view details")

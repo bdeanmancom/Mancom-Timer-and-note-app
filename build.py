@@ -1,14 +1,14 @@
-"""
-Build script to create standalone Windows executable
-Run: python build.py
-
-First install build dependencies:
-pip install -r requirements-dev.txt
+"""\nBuild script to create standalone Windows executable\nRun: python build.py\n\nThis bundles:
+- main.py (app logic)
+- icon.ico (window icon)
+- logo.png/jpg or mancom.gif (branding logo)
+- All dependencies
 """
 
 import subprocess
 import sys
 import os
+from pathlib import Path
 
 def build_executable():
     """Build standalone Windows executable"""
@@ -22,20 +22,43 @@ def build_executable():
     
     print("Building executable...")
     
-    # Build command
+    # Find logo file
+    logo_file = None
+    for ext in ['logo.png', 'logo.jpg', 'logo.jpeg', 'mancom.png', 'mancom.jpg', 'mancom.gif']:
+        if Path(ext).exists():
+            logo_file = ext
+            break
+    
+    # Build command with data files
     cmd = [
         "pyinstaller",
         "--onefile",
         "--windowed",
         "--name", "MancomTimer",
-        "--icon=icon.ico" if os.path.exists("icon.ico") else "--icon=NONE",
-        "main.py"
     ]
+    
+    # Add icon if available
+    if os.path.exists("icon.ico"):
+        cmd.extend(["--icon=icon.ico"])
+    else:
+        cmd.append("--icon=NONE")
+    
+    # Add logo file if available
+    if logo_file:
+        cmd.extend(["--add-data", f"{logo_file}:."])
+    
+    # Add config file
+    cmd.extend(["--add-data", "config.py:."])
+    
+    cmd.append("main.py")
     
     try:
         subprocess.check_call(cmd)
         print("\n✓ Build successful!")
         print("Executable location: dist/MancomTimer.exe")
+        if logo_file:
+            print(f"✓ Logo included: {logo_file}")
+        print("\nNote: The exe includes your logo and will display it on launch.")
     except subprocess.CalledProcessError as e:
         print(f"\n✗ Build failed: {e}")
         sys.exit(1)
