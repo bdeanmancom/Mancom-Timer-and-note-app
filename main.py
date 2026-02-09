@@ -116,10 +116,19 @@ class TimerApp(QMainWindow):
         self.setWindowTitle("Mancom Timer & Notes")
         self.setGeometry(100, 100, 1000, 600)
         
-        # Set window icon if available
-        icon_path = Path("icon.ico")
-        if icon_path.exists():
-            self.setWindowIcon(QIcon(str(icon_path)))
+        # Set window icon if available (try multiple paths)
+        icon_path = None
+        for attempt in [Path("icon.ico"), Path(os.getcwd()) / "icon.ico", Path(__file__).parent / "icon.ico"]:
+            if attempt.exists():
+                icon_path = attempt
+                break
+        
+        if icon_path:
+            try:
+                self.setWindowIcon(QIcon(str(icon_path)))
+                print(f"✓ Window icon loaded from: {icon_path}")
+            except Exception as e:
+                print(f"Warning: Could not set window icon: {e}")
         
         # Initialize managers
         self.timer_manager = TimerManager()
@@ -154,6 +163,18 @@ class TimerApp(QMainWindow):
     
     def setup_ui(self):
         """Setup the user interface"""
+        # Create menu bar for theme switching
+        menu_bar = self.menuBar()
+        view_menu = menu_bar.addMenu("View")
+        
+        theme_light = view_menu.addAction("Light Theme")
+        theme_dark = view_menu.addAction("Dark Theme")
+        theme_system = view_menu.addAction("System Theme")
+        
+        theme_light.triggered.connect(lambda: self.apply_theme('light'))
+        theme_dark.triggered.connect(lambda: self.apply_theme('dark'))
+        theme_system.triggered.connect(lambda: self.apply_theme('system'))
+        
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
@@ -204,16 +225,30 @@ class TimerApp(QMainWindow):
         
         # Add Mancom logo if GIF exists
         logo_layout = QHBoxLayout()
-        gif_path = Path("mancom.gif")
-        if gif_path.exists():
-            logo_label = QLabel()
-            pixmap = QPixmap(str(gif_path)).scaledToHeight(64, Qt.SmoothTransformation)
-            logo_label.setPixmap(pixmap)
-            logo_label.setMaximumHeight(80)
-            logo_layout.addStretch()
-            logo_layout.addWidget(logo_label)
-            logo_layout.addStretch()
-            right_panel.addLayout(logo_layout)
+        # Try multiple path options
+        gif_path = None
+        for attempt in [Path("mancom.gif"), Path(os.getcwd()) / "mancom.gif", Path(__file__).parent / "mancom.gif"]:
+            if attempt.exists():
+                gif_path = attempt
+                break
+        
+        if gif_path:
+            try:
+                logo_label = QLabel()
+                pixmap = QPixmap(str(gif_path))
+                if not pixmap.isNull():
+                    pixmap = pixmap.scaledToHeight(64, Qt.SmoothTransformation)
+                    logo_label.setPixmap(pixmap)
+                    logo_label.setMaximumHeight(80)
+                    logo_layout.addStretch()
+                    logo_layout.addWidget(logo_label)
+                    logo_layout.addStretch()
+                    right_panel.addLayout(logo_layout)
+                    print(f"✓ Logo loaded from: {gif_path}")
+                else:
+                    print(f"Warning: Could not load GIF from {gif_path}")
+            except Exception as e:
+                print(f"Warning: Error loading GIF: {e}")
         
         # Task details label
         self.task_details_label = QLabel("Select a task to view details")
@@ -326,8 +361,9 @@ class TimerApp(QMainWindow):
         # Show the tray icon; some environments may not support system tray
         try:
             self.tray_icon.show()
-        except Exception:
-            print("Warning: system tray unavailable in this environment")
+            print("✓ System tray icon displayed")
+        except Exception as e:
+            print(f"Warning: system tray unavailable: {e}")
         
         self.tray_icon.activated.connect(self.on_tray_activated)
     
