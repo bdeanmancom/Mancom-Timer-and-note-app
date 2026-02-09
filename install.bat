@@ -44,6 +44,15 @@ echo Installing additional dependencies...
 pip install -r requirements.txt
 
 echo.
+echo Installing Pillow (PIL) for icon generation...
+pip install Pillow
+if errorlevel 1 (
+    echo [WARNING] Failed to install Pillow automatically.
+    echo You can install it manually with: pip install Pillow
+    echo Continuing without Pillow; create_icon.py will prompt if missing.
+)
+
+echo.
 echo ========================================
 echo Installation complete!
 echo ========================================
