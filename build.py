@@ -9,6 +9,7 @@ import subprocess
 import sys
 import os
 import shutil
+import time
 from pathlib import Path
 
 def build_executable():
@@ -23,17 +24,31 @@ def build_executable():
     
     print("Cleaning previous build artifacts...")
     
+    # Kill any running MancomTimer processes on Windows
+    if sys.platform == "win32":
+        print("Checking for running MancomTimer instances...")
+        os.system("taskkill /F /IM MancomTimer.exe 2>nul")
+    
     # Remove old build artifacts to avoid permission errors
     for path in ['dist', 'build', 'MancomTimer.spec']:
         if os.path.exists(path):
             try:
                 if os.path.isdir(path):
-                    shutil.rmtree(path)
+                    shutil.rmtree(path, ignore_errors=True)
                 else:
                     os.remove(path)
                 print(f"  Removed: {path}")
             except Exception as e:
-                print(f"  Warning: Could not remove {path}: {e}")
+                print(f"  Warning: Could not remove {path}, retrying...")
+                time.sleep(0.5)
+                try:
+                    if os.path.isdir(path):
+                        shutil.rmtree(path, ignore_errors=True)
+                    else:
+                        os.remove(path)
+                    print(f"  Removed: {path} (retry succeeded)")
+                except Exception as e2:
+                    print(f"  Warning: Could not remove {path}: {e2}")
     
     print("Building executable...")
     
@@ -52,6 +67,7 @@ def build_executable():
         "PyInstaller",
         "--onefile",
         "--windowed",
+        "--clean",
         "--name", "MancomTimer",
     ]
     
