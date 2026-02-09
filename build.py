@@ -1,6 +1,9 @@
 """
 Build script to create standalone Windows executable
 Run: python build.py
+
+First install build dependencies:
+pip install -r requirements-dev.txt
 """
 
 import subprocess
@@ -14,8 +17,8 @@ def build_executable():
     try:
         import PyInstaller
     except ImportError:
-        print("Installing PyInstaller...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
+        print("Installing PyInstaller and build dependencies...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements-dev.txt"])
     
     print("Building executable...")
     
@@ -25,8 +28,7 @@ def build_executable():
         "--onefile",
         "--windowed",
         "--name", "MancomTimer",
-        "--icon=icon.ico",  # Optional: add icon if available
-        "--add-data", ".",
+        "--icon=icon.ico" if os.path.exists("icon.ico") else "--icon=NONE",
         "main.py"
     ]
     
