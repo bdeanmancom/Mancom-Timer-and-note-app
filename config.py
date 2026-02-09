@@ -52,7 +52,6 @@ LABELS = {
     'notes_placeholder': 'Add notes here...',
 }
 
-def get_stylesheet():
 def get_stylesheet(mode='system'):
     """Return the application stylesheet for 'light' or 'dark' mode.
     Use 'system' to let the caller choose based on OS/Qt palette."""
@@ -145,70 +144,5 @@ def get_stylesheet(mode='system'):
         
         QLabel {{
             color: {C['text']};
-        }}
-    """
-        
-        QPushButton {{
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            border: none;
-            color: white;
-        }}
-        
-        QPushButton:hover {{
-            opacity: 0.9;
-        }}
-        
-        QPushButton:pressed {{
-            opacity: 0.8;
-        }}
-        
-        QPushButton#addBtn {{
-            background-color: {COLORS['primary']};
-        }}
-        
-        QPushButton#startBtn {{
-            background-color: {COLORS['accent']};
-        }}
-        
-        QPushButton#stopBtn {{
-            background-color: {COLORS['warning']};
-        }}
-        
-        QPushButton#deleteBtn {{
-            background-color: {COLORS['danger']};
-        }}
-        
-        QLineEdit, QTextEdit {{
-            border: 1px solid {COLORS['border']};
-            border-radius: 4px;
-            padding: 5px;
-            background-color: {COLORS['surface']};
-            color: {COLORS['text']};
-        }}
-        
-        QLineEdit:focus, QTextEdit:focus {{
-            border: 2px solid {COLORS['primary']};
-        }}
-        
-        QListWidget {{
-            border: 1px solid {COLORS['border']};
-            border-radius: 4px;
-            background-color: {COLORS['surface']};
-        }}
-        
-        QListWidget::item {{
-            padding: 5px;
-            margin: 2px 0px;
-        }}
-        
-        QListWidget::item:selected {{
-            background-color: {COLORS['primary']};
-            color: white;
-        }}
-        
-        QLabel {{
-            color: {COLORS['text']};
         }}
     """
