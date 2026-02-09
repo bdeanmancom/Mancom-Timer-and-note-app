@@ -8,6 +8,7 @@
 import subprocess
 import sys
 import os
+import shutil
 from pathlib import Path
 
 def build_executable():
@@ -19,6 +20,20 @@ def build_executable():
     except ImportError:
         print("Installing PyInstaller and build dependencies...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements-dev.txt"])
+    
+    print("Cleaning previous build artifacts...")
+    
+    # Remove old build artifacts to avoid permission errors
+    for path in ['dist', 'build', 'MancomTimer.spec']:
+        if os.path.exists(path):
+            try:
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+                print(f"  Removed: {path}")
+            except Exception as e:
+                print(f"  Warning: Could not remove {path}: {e}")
     
     print("Building executable...")
     
