@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QListWidgetItem, QLineEdit, QTextEdit, QSplitter,
                              QMessageBox, QSystemTrayIcon, QMenu)
 from PyQt5.QtCore import QTimer, Qt, QSize, pyqtSignal, QObject
-from PyQt5.QtGui import QIcon, QFont, QColor
+from PyQt5.QtGui import QIcon, QFont, QColor, QPalette
+import config
 
 class TimerManager(QObject):
     """Manages timers for individual tasks"""
@@ -124,7 +125,11 @@ class TimerApp(QMainWindow):
         
         # Setup UI first (before loading tasks)
         self.setup_ui()
-        
+
+        # Apply initial theme (system)
+        self.current_theme = 'system'
+        self.apply_theme('system')
+
         # Load saved tasks
         self.load_tasks()
         
@@ -279,6 +284,15 @@ class TimerApp(QMainWindow):
         
         quit_action = tray_menu.addAction("Quit")
         quit_action.triggered.connect(self.quit_app)
+
+        # Theme submenu
+        theme_menu = tray_menu.addMenu("Theme")
+        light_action = theme_menu.addAction("Light")
+        dark_action = theme_menu.addAction("Dark")
+        system_action = theme_menu.addAction("System")
+        light_action.triggered.connect(lambda: self.apply_theme('light'))
+        dark_action.triggered.connect(lambda: self.apply_theme('dark'))
+        system_action.triggered.connect(lambda: self.apply_theme('system'))
         
         self.tray_icon.setContextMenu(tray_menu)
         # Show the tray icon; some environments may not support system tray
@@ -296,6 +310,27 @@ class TimerApp(QMainWindow):
                 self.hide_window()
             else:
                 self.show_window()
+
+    def detect_system_theme(self):
+        """Return 'dark' or 'light' based on the system palette."""
+        try:
+            palette = QApplication.palette()
+            color = palette.color(QPalette.Window)
+            # lightness ranges 0..255; lower -> darker
+            return 'dark' if color.lightness() < 128 else 'light'
+        except Exception:
+            return 'light'
+
+    def apply_theme(self, mode):
+        """Apply the selected theme to the application."""
+        if mode == 'system':
+            chosen = self.detect_system_theme()
+        else:
+            chosen = mode
+
+        stylesheet = config.get_stylesheet(chosen)
+        self.setStyleSheet(stylesheet)
+        self.current_theme = mode
     
     def show_window(self):
         """Show the application window"""

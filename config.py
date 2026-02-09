@@ -53,11 +53,100 @@ LABELS = {
 }
 
 def get_stylesheet():
-    """Return the application stylesheet"""
+def get_stylesheet(mode='system'):
+    """Return the application stylesheet for 'light' or 'dark' mode.
+    Use 'system' to let the caller choose based on OS/Qt palette."""
+
+    light = {
+        **COLORS
+    }
+
+    dark = {
+        'primary': '#1f2a36',
+        'accent': '#2ecc71',
+        'warning': '#d35400',
+        'danger': '#c0392b',
+        'background': '#1e1f23',
+        'surface': '#2b2b2f',
+        'text': '#ecf0f1',
+        'border': '#3a3f44',
+        'highlight': '#274b3a',
+    }
+
+    if mode == 'dark':
+        C = dark
+    else:
+        C = light
+
     return f"""
         QMainWindow {{
-            background-color: {COLORS['background']};
+            background-color: {C['background']};
         }}
+        
+        QPushButton {{
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            border: none;
+            color: white;
+        }}
+        
+        QPushButton:hover {{
+            opacity: 0.9;
+        }}
+        
+        QPushButton:pressed {{
+            opacity: 0.8;
+        }}
+        
+        QPushButton#addBtn {{
+            background-color: {C['primary']};
+        }}
+        
+        QPushButton#startBtn {{
+            background-color: {C['accent']};
+        }}
+        
+        QPushButton#stopBtn {{
+            background-color: {C['warning']};
+        }}
+        
+        QPushButton#deleteBtn {{
+            background-color: {C['danger']};
+        }}
+        
+        QLineEdit, QTextEdit {{
+            border: 1px solid {C['border']};
+            border-radius: 4px;
+            padding: 5px;
+            background-color: {C['surface']};
+            color: {C['text']};
+        }}
+        
+        QLineEdit:focus, QTextEdit:focus {{
+            border: 2px solid {C['primary']};
+        }}
+        
+        QListWidget {{
+            border: 1px solid {C['border']};
+            border-radius: 4px;
+            background-color: {C['surface']};
+        }}
+        
+        QListWidget::item {{
+            padding: 5px;
+            margin: 2px 0px;
+        }}
+        
+        QListWidget::item:selected {{
+            background-color: {C['primary']};
+            color: white;
+        }}
+        
+        QLabel {{
+            color: {C['text']};
+        }}
+    """
         
         QPushButton {{
             padding: 8px 12px;
