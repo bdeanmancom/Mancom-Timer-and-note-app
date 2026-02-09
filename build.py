@@ -30,8 +30,11 @@ def build_executable():
             break
     
     # Build command with data files
+    # Use python -m PyInstaller for better cross-platform reliability
     cmd = [
-        "pyinstaller",
+        sys.executable,
+        "-m",
+        "PyInstaller",
         "--onefile",
         "--windowed",
         "--name", "MancomTimer",
