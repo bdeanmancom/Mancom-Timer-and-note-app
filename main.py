@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QListWidgetItem, QLineEdit, QTextEdit, QSplitter,
                              QMessageBox, QSystemTrayIcon, QMenu)
 from PyQt5.QtCore import QTimer, Qt, QSize, pyqtSignal, QObject
-from PyQt5.QtGui import QIcon, QFont, QColor, QPalette
+from PyQt5.QtGui import QIcon, QFont, QColor, QPalette, QPixmap
 import config
 
 class TimerManager(QObject):
@@ -116,6 +116,11 @@ class TimerApp(QMainWindow):
         self.setWindowTitle("Mancom Timer & Notes")
         self.setGeometry(100, 100, 1000, 600)
         
+        # Set window icon if available
+        icon_path = Path("icon.ico")
+        if icon_path.exists():
+            self.setWindowIcon(QIcon(str(icon_path)))
+        
         # Initialize managers
         self.timer_manager = TimerManager()
         self.data_store = DataStore()
@@ -196,6 +201,19 @@ class TimerApp(QMainWindow):
         
         # Right panel - Task details
         right_panel = QVBoxLayout()
+        
+        # Add Mancom logo if GIF exists
+        logo_layout = QHBoxLayout()
+        gif_path = Path("mancom.gif")
+        if gif_path.exists():
+            logo_label = QLabel()
+            pixmap = QPixmap(str(gif_path)).scaledToHeight(64, Qt.SmoothTransformation)
+            logo_label.setPixmap(pixmap)
+            logo_label.setMaximumHeight(80)
+            logo_layout.addStretch()
+            logo_layout.addWidget(logo_label)
+            logo_layout.addStretch()
+            right_panel.addLayout(logo_layout)
         
         # Task details label
         self.task_details_label = QLabel("Select a task to view details")
@@ -339,7 +357,10 @@ class TimerApp(QMainWindow):
             chosen = mode
 
         stylesheet = config.get_stylesheet(chosen)
+        # Apply to main window and ensure it cascades to all children
         self.setStyleSheet(stylesheet)
+        # Force update of all widgets
+        QApplication.instance().setStyle(QApplication.instance().style())
         self.current_theme = mode
     
     def show_window(self):
@@ -494,11 +515,16 @@ class TimerApp(QMainWindow):
     
     def save_tasks(self):
         """Save tasks to file"""
-        # Update elapsed time in tasks
+        # Update elapsed time in tasks from running timers
+        # Accumulate running time into stored time WITHOUT resetting counter
         for task in self.tasks:
             if task.id in self.timer_manager.timers:
-                task.elapsed_seconds += self.timer_manager.timers[task.id]['elapsed']
-                self.timer_manager.timers[task.id]['elapsed'] = 0
+                running = self.timer_manager.timers[task.id]['elapsed']
+                if running > 0:
+                    task.elapsed_seconds += running
+                    # Move running back to base, but keep it accumulating properly
+                    # by storing the old base and resetting to 0 for next interval
+                    self.timer_manager.timers[task.id]['elapsed'] = 0
         
         self.data_store.save(self.tasks)
         self.set_dirty(False)
