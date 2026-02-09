@@ -123,6 +123,9 @@ class TimerApp(QMainWindow):
         self.current_task = None
         self.task_counter = 0
         
+        # Dirty flag tracks whether there are unsaved changes
+        self.dirty = False
+
         # Setup UI first (before loading tasks)
         self.setup_ui()
 
@@ -232,6 +235,13 @@ class TimerApp(QMainWindow):
         self.stop_btn.setStyleSheet("background-color: #e67e22; color: white;")
         self.stop_btn.setEnabled(False)
         button_layout.addWidget(self.stop_btn)
+        
+        # Save button
+        self.save_btn = QPushButton("Save")
+        self.save_btn.clicked.connect(self.on_save_clicked)
+        self.save_btn.setStyleSheet("background-color: #2980b9; color: white;")
+        self.save_btn.setEnabled(False)
+        button_layout.addWidget(self.save_btn)
         
         right_panel.addLayout(button_layout)
         
@@ -360,7 +370,7 @@ class TimerApp(QMainWindow):
         self.task_input.clear()
         
         self.refresh_task_list()
-        self.save_tasks()
+        self.set_dirty(True)
     
     def delete_task(self):
         """Delete the selected task"""
@@ -377,7 +387,7 @@ class TimerApp(QMainWindow):
             self.current_task = None
             self.refresh_task_list()
             self.clear_task_details()
-            self.save_tasks()
+            self.set_dirty(True)
     
     def on_task_selected(self, item):
         """Handle task selection"""
@@ -424,6 +434,7 @@ class TimerApp(QMainWindow):
         self.start_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
         self.refresh_task_list()
+        self.set_dirty(True)
     
     def stop_task(self):
         """Stop the selected task's timer"""
@@ -434,21 +445,23 @@ class TimerApp(QMainWindow):
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
         self.refresh_task_list()
-        self.save_tasks()
+        self.set_dirty(True)
     
     def on_notes_changed(self):
         """Handle notes text changes"""
         if self.current_task:
             self.current_task.notes = self.notes_edit.toPlainText()
+            self.set_dirty(True)
     
     def update_timer_display(self, task_id, elapsed_seconds):
-        """Update the timer display"""
-        self.current_task.elapsed_seconds = elapsed_seconds
-        
-        if task_id == self.current_task.id:
-            hours = elapsed_seconds // 3600
-            minutes = (elapsed_seconds % 3600) // 60
-            seconds = elapsed_seconds % 60
+        """Update the timer display showing total time (stored + running)"""
+        # Don't overwrite stored elapsed here; save_tasks() handles that
+        # Calculate total: stored + currently running
+        if self.current_task and task_id == self.current_task.id:
+            total_elapsed = self.current_task.elapsed_seconds + elapsed_seconds
+            hours = total_elapsed // 3600
+            minutes = (total_elapsed % 3600) // 60
+            seconds = total_elapsed % 60
             self.timer_display.setText(f"{hours:02d}:{minutes:02d}:{seconds:02d}")
         
         self.refresh_task_list()
@@ -488,7 +501,20 @@ class TimerApp(QMainWindow):
                 self.timer_manager.timers[task.id]['elapsed'] = 0
         
         self.data_store.save(self.tasks)
+        self.set_dirty(False)
     
+    def on_save_clicked(self):
+        """Handler for Save button"""
+        self.save_tasks()
+
+    def set_dirty(self, value: bool = True):
+        """Set dirty flag and update Save button state"""
+        self.dirty = bool(value)
+        try:
+            self.save_btn.setEnabled(self.dirty)
+        except Exception:
+            pass
+
     def load_tasks(self):
         """Load tasks from file"""
         self.tasks = self.data_store.load()
@@ -506,7 +532,20 @@ class TimerApp(QMainWindow):
     
     def closeEvent(self, event):
         """Handle window close event"""
-        self.save_tasks()
+        # If there are unsaved changes, prompt the user
+        if getattr(self, 'dirty', False):
+            msg = QMessageBox(self)
+            msg.setIcon(QMessageBox.Warning)
+            msg.setWindowTitle("Unsaved Changes")
+            msg.setText("You have unsaved changes. Save before closing?")
+            msg.setStandardButtons(QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+            ret = msg.exec_()
+            if ret == QMessageBox.Cancel:
+                event.ignore()
+                return
+            if ret == QMessageBox.Save:
+                self.save_tasks()
+        # Hide to tray instead of quitting the app
         self.hide()
         event.ignore()
 
