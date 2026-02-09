@@ -1,7 +1,7 @@
 @echo off
 REM Mancom Timer & Notes App Launcher
 
-echo Launching Mancom Timer & Notes App...
+echo Launching Mancom Timer ^& Notes App...
 python main.py
 
 if errorlevel 1 (

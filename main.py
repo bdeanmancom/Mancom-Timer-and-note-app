@@ -260,7 +260,13 @@ class TimerApp(QMainWindow):
     
     def setup_tray(self):
         """Setup system tray icon and menu"""
-        self.tray_icon = QSystemTrayIcon(self)
+        # Use a bundled icon if available, otherwise default
+        icon_path = Path("icon.ico")
+        if icon_path.exists():
+            tray_icon = QIcon(str(icon_path))
+            self.tray_icon = QSystemTrayIcon(tray_icon, self)
+        else:
+            self.tray_icon = QSystemTrayIcon(self)
         
         tray_menu = QMenu()
         show_action = tray_menu.addAction("Show")
@@ -275,7 +281,11 @@ class TimerApp(QMainWindow):
         quit_action.triggered.connect(self.quit_app)
         
         self.tray_icon.setContextMenu(tray_menu)
-        self.tray_icon.show()
+        # Show the tray icon; some environments may not support system tray
+        try:
+            self.tray_icon.show()
+        except Exception:
+            print("Warning: system tray unavailable in this environment")
         
         self.tray_icon.activated.connect(self.on_tray_activated)
     
